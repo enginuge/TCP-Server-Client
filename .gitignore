@@ -1,0 +1,7 @@
+# This File tells github to not upload files or folders.
+
+# My vim text editor aves backups in a _temp folder.
+_temp/
+
+# Stop any .exe files being uploaded.
+*.exe

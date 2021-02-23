@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -7,7 +8,7 @@
 #pragma comment(lib, "ws2_32.lib")
 
 #define PORT "5555"
-
+#define MAXSIZE 512
 int main()
 {
 	WSADATA wsadata;
@@ -20,12 +21,7 @@ int main()
 
 	socklen_t sin_size;
 
-	// struct sigaction sa;
-
-	int yes=1;
-
-	char s[INET_ADDRSTRLEN];
-
+	char message[MAXSIZE] = "Robot Club Server says Hello.";
 	int rv;
 
 	rv = WSAStartup(MAKEWORD(2,2), &wsadata);
@@ -111,7 +107,7 @@ int main()
 
 		printf("Server Got Connection\n");
 
-		rv = send(newfd, "Hello, World!", 13, 0);
+		rv = send(newfd, message, strlen(message), 0);
 
 		if(rv == -1)
 		{

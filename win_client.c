@@ -6,7 +6,8 @@
 
 #pragma comment(lib, "ws2_32.lib")
 
-#define PORT "5555"
+#define PORT "5555" // In Windows the port must be a string.
+
 #define MAXSIZE 512
 
 int main(int argc, char *argv[])
@@ -28,6 +29,7 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	// Initialize Winsock library.
 	rv = WSAStartup(MAKEWORD(2,2), &wsadata);
 
 	if(rv != 0)
@@ -41,6 +43,7 @@ int main(int argc, char *argv[])
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 
+	// return-value = getaddrinfo(hostname, port, addrinfo hints, addrinfo response)
 	rv = getaddrinfo(argv[1], PORT, &hints, &serverinfo);
 
 	if(rv != 0)
@@ -52,7 +55,8 @@ int main(int argc, char *argv[])
 
 	for(p = serverinfo; p != NULL; p -> ai_next)
 	{
-		sockfd = socket(p -> ai_family, p -> ai_addrlen, p -> ai_protocol);
+		// socket-file-descriptor = socket(SOCKET, sockaddr *name, int namelen);
+		sockfd = socket(p -> ai_family, p -> ai_socktype, p -> ai_protocol);
 
 		if(sockfd == -1)
 		{
@@ -96,9 +100,10 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 
+	// Add a '\0' after the last byte to terminate the string.
 	buf[numbytes] ='\0';
 
-	printf("Client: Received --------\n%s\n---------\n", buf);
+	printf("Client: Received\n--------\n%s\n---------\n", buf);
 
 	closesocket(sockfd);
 
