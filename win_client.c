@@ -58,7 +58,18 @@ int main(int argc, char *argv[])
 		{
 			closesocket(sockfd);
 
-			perror("client: connect");
+			perror("Client: Socket");
+
+			continue;
+		}
+
+		rv = connect(sockfd, p -> ai_addr, p -> ai_addrlen);
+
+		if (rv == -1)
+		{
+			closesocket(sockfd);
+
+			perror("Client: Connect");
 
 			continue;
 		}
@@ -71,7 +82,7 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Client: Failed to Connect\n");
 
-		exit(1);
+		return 2;
 	}
 
 	freeaddrinfo(serverinfo);
