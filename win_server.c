@@ -21,8 +21,10 @@ int main()
 
 	socklen_t sin_size;
 
-	char message[MAXSIZE] = "Robot Club Server says Hello.";
+	char message[MAXSIZE] = "Robot Club Server is happy to meet you!";
 	int rv;
+
+	char receive_buffer[MAXSIZE];
 
 	rv = WSAStartup(MAKEWORD(2,2), &wsadata);
 
@@ -97,6 +99,8 @@ int main()
 		sin_size = sizeof their_addr;
 
 		newfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+		
+		printf("After Accept.\n");
 
 		if(newfd == -1)
 		{
@@ -106,6 +110,20 @@ int main()
 		}
 
 		printf("Server Got Connection\n");
+
+		rv = recv(newfd, receive_buffer, MAXSIZE-1, 0);
+
+		if(rv == -1)
+		{
+			perror("recv");
+
+			exit(1);
+		}
+		
+		receive_buffer[rv] = '\0';
+
+		printf(receive_buffer);
+		printf("\n"); // newline in terminal.
 
 		rv = send(newfd, message, strlen(message), 0);
 

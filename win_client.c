@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
@@ -20,9 +22,11 @@ int main(int argc, char *argv[])
 
 	struct addrinfo hints, *serverinfo, *p;
 
-	int rv;
+	int rv; // return-value for function calls.
 
-	if(argc!=2)
+
+
+	if(argc!=3)
 	{
 		fprintf(stderr, "Program takes IP input argument\n");
 
@@ -39,6 +43,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	// The hints for the type of socket we want needs to be cleared with zeros for most values.
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
@@ -90,7 +95,16 @@ int main(int argc, char *argv[])
 	}
 
 	freeaddrinfo(serverinfo);
+	
+	rv = send(sockfd, argv[2], strlen(argv[2]), 0);
+	
+	if(rv ==-1)
+	{
+		perror("send");
 
+		exit(1);
+	}
+	
 	numbytes = recv(sockfd, buf, MAXSIZE-1, 0);
 
 	if(numbytes == -1)
