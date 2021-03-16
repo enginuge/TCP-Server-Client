@@ -20,9 +20,10 @@ int send_file(FILE *fp, int sockfd)
 	char data[MAXSIZE] = {0};
 	//int data[MAXSIZE];
 
-	while(fgets(data, MAXSIZE, fp) != NULL)
+	//while(fgets(data, MAXSIZE, fp) != NULL)
+	while(fread(data, sizeof(char), MAXSIZE, fp) > 0 )
 	{
-		n = send(sockfd, data, sizeof(data), 0) ;
+		n = send(sockfd, data, sizeof(data), 0);
 
 		if(n == -1)
 		{
@@ -35,7 +36,7 @@ int send_file(FILE *fp, int sockfd)
 		
 		total_n += n;
 
-		//memset(data, 0, MAXSIZE);
+		memset(data, 0, MAXSIZE);
 	}
 	
 	printf("CLIENT: Total Bytes Sent: %d\n", total_n);
