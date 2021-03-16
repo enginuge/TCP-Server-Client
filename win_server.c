@@ -9,6 +9,42 @@
 
 #define PORT "5555"
 #define MAXSIZE 512
+
+int write_file(int sockfd, char filename[])
+{
+	int n;
+	int total_n = 0;
+
+	FILE *fp;
+	char buffer[MAXSIZE];
+
+	fp = fopen(filename, "wb");
+
+	while(1)
+	{
+		n = recv(sockfd, buffer, MAXSIZE, 0);
+		
+		printf("SERVER: Received %d Bytes.\n", n);
+
+		if(n<= 0)
+		{
+			break;
+		}
+
+		fprintf(fp, "%s", buffer);
+		
+		total_n += n;
+
+		memset(buffer, 0, MAXSIZE);
+	}
+
+	printf("SERVER: Total Bytes Received: %d\n", total_n);
+	
+	fclose(fp);
+
+	return 0;
+}
+
 int main()
 {
 	WSADATA wsadata;
@@ -131,9 +167,10 @@ int main()
 		{
 			perror("Send");
 		}
+		
+		write_file(newfd, receive_buffer);
 
 		closesocket(newfd);
-
 	}
 
 	return 0;

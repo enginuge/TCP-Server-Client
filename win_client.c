@@ -12,6 +12,36 @@
 
 #define MAXSIZE 512
 
+int send_file(FILE *fp, int sockfd)
+{
+	int n;
+	int total_n = 0;
+
+	char data[MAXSIZE] = {0};
+	//int data[MAXSIZE];
+
+	while(fgets(data, MAXSIZE, fp) != NULL)
+	{
+		n = send(sockfd, data, sizeof(data), 0) ;
+
+		if(n == -1)
+		{
+			perror("Error Sending File.");
+
+			exit(1);
+		}
+
+		printf("CLIENT: Sent %d Bytes.\n", n);
+		
+		total_n += n;
+
+		//memset(data, 0, MAXSIZE);
+	}
+	
+	printf("CLIENT: Total Bytes Sent: %d\n", total_n);
+
+	return 0;
+}
 int main(int argc, char *argv[])
 {
 	WSADATA wsadata;
@@ -24,7 +54,9 @@ int main(int argc, char *argv[])
 
 	int rv; // return-value for function calls.
 
-
+	// Declare File Pointer.
+	FILE *fp;
+	char *filename;
 
 	if(argc!=3)
 	{
@@ -32,6 +64,8 @@ int main(int argc, char *argv[])
 
 		exit(1);
 	}
+
+	filename = argv[2];
 
 	// Initialize Winsock library.
 	rv = WSAStartup(MAKEWORD(2,2), &wsadata);
@@ -96,7 +130,8 @@ int main(int argc, char *argv[])
 
 	freeaddrinfo(serverinfo);
 	
-	rv = send(sockfd, argv[2], strlen(argv[2]), 0);
+	//rv = send(sockfd, argv[2], strlen(argv[2]), 0);
+	rv = send(sockfd, filename, strlen(filename), 0);
 	
 	if(rv ==-1)
 	{
@@ -118,6 +153,18 @@ int main(int argc, char *argv[])
 	buf[numbytes] ='\0';
 
 	printf("Client: Received\n--------\n%s\n---------\n", buf);
+
+	fp = fopen(filename, "rb");
+
+	if(fp == NULL)
+	{
+		perror("Error Opening File");
+		exit(1);
+	}
+
+	send_file(fp, sockfd);
+	
+	fclose(fp);
 
 	closesocket(sockfd);
 
