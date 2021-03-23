@@ -32,7 +32,7 @@ int write_file(int sockfd, char filename[])
 		}
 
 		//fprintf(fp, "%s", buffer);
-		fwrite(buffer, sizeof(char), MAXSIZE, fp);
+		fwrite(buffer, sizeof(char), n, fp);
 		
 		total_n += n;
 
