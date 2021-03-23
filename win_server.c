@@ -131,23 +131,26 @@ int main()
 
 	printf("Server Waiting for Connection...\n");
 
+	sin_size = sizeof their_addr;
+
+	newfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+	
+	printf("After Accept.\n");
+
+	if(newfd == -1)
+	{
+		perror("accept");
+
+		//continue;
+		return -1;
+	}
+
+	printf("Server Got Connection\n");
+
 	while(1)
 	{
-		sin_size = sizeof their_addr;
 
-		newfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
-		
-		printf("After Accept.\n");
-
-		if(newfd == -1)
-		{
-			perror("accept");
-
-			continue;
-		}
-
-		printf("Server Got Connection\n");
-
+		// Receive Client Intro.
 		rv = recv(newfd, receive_buffer, MAXSIZE-1, 0);
 
 		if(rv == -1)
@@ -162,6 +165,9 @@ int main()
 		printf(receive_buffer);
 		printf("\n"); // newline in terminal.
 
+		scanf("%s", &message);
+
+		// Send Server Welcome Message.
 		rv = send(newfd, message, strlen(message), 0);
 
 		if(rv == -1)
@@ -169,10 +175,11 @@ int main()
 			perror("Send");
 		}
 		
-		write_file(newfd, receive_buffer);
+		//write_file(newfd, receive_buffer);
 
-		closesocket(newfd);
 	}
+
+	closesocket(newfd);
 
 	return 0;
 }

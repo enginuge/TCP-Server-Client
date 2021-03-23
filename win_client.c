@@ -56,17 +56,19 @@ int main(int argc, char *argv[])
 	int rv; // return-value for function calls.
 
 	// Declare File Pointer.
-	FILE *fp;
-	char *filename;
+	//FILE *fp;
+	//char *filename;
 
-	if(argc!=3)
+	char message[MAXSIZE];
+
+	if(argc!=2)
 	{
 		fprintf(stderr, "Program takes IP input argument\n");
 
 		exit(1);
 	}
 
-	filename = argv[2];
+	//filename = argv[2];
 
 	// Initialize Winsock library.
 	rv = WSAStartup(MAKEWORD(2,2), &wsadata);
@@ -132,40 +134,53 @@ int main(int argc, char *argv[])
 	freeaddrinfo(serverinfo);
 	
 	//rv = send(sockfd, argv[2], strlen(argv[2]), 0);
-	rv = send(sockfd, filename, strlen(filename), 0);
 	
-	if(rv ==-1)
+	while(1)
 	{
-		perror("send");
+		scanf("%s", message);
 
-		exit(1);
+		// Send client intro.
+		rv = send(sockfd, message, strlen(message), 0);
+		
+		if(rv ==-1)
+		{
+			perror("send");
+
+			exit(1);
+		}
+		
+		// Receive Server welcome Message.
+		numbytes = recv(sockfd, buf, MAXSIZE-1, 0);
+
+		if(numbytes == -1)
+		{
+			perror("recv");
+
+			exit(1);
+		}
+
+		else if(numbytes==0)
+		{
+			break;
+		}
+
+		// Add a '\0' after the last byte to terminate the string.
+		buf[numbytes] ='\0';
+
+		printf("Client: Received\n--------\n%s\n---------\n", buf);
+
+		//fp = fopen(filename, "rb");
+
+	//	if(fp == NULL)
+	//	{
+	//		perror("Error Opening File");
+	//		exit(1);
+	//	}
+
+		//send_file(fp, sockfd);
+		
+		//fclose(fp);
 	}
-	
-	numbytes = recv(sockfd, buf, MAXSIZE-1, 0);
-
-	if(numbytes == -1)
-	{
-		perror("recv");
-
-		exit(1);
-	}
-
-	// Add a '\0' after the last byte to terminate the string.
-	buf[numbytes] ='\0';
-
-	printf("Client: Received\n--------\n%s\n---------\n", buf);
-
-	fp = fopen(filename, "rb");
-
-	if(fp == NULL)
-	{
-		perror("Error Opening File");
-		exit(1);
-	}
-
-	send_file(fp, sockfd);
-	
-	fclose(fp);
 
 	closesocket(sockfd);
 
