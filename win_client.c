@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
 		buf[numbytes] ='\0';
 
 		// Display the recieved message.
-		printf("Them: ", buf);
+		printf("Them: %s", buf);
 	}
 
 	closesocket(sockfd);
