@@ -145,7 +145,7 @@ int main()
 		return -1;
 	}
 
-	printf("Server Got Connection\n");
+	printf("Server Got Connection!\n");
 
 	while(1)
 	{
@@ -162,22 +162,20 @@ int main()
 		
 		receive_buffer[rv] = '\0';
 
-		printf(receive_buffer);
-		printf("\n"); // newline in terminal.
+		// Display the recieved message.
+		printf("Them: %s", receive_buffer);
+		//printf("\n"); // newline in terminal.
 
-		//scanf("%s", &message);
+		printf("You: ");
 		fgets(message, MAXSIZE, stdin);
 
-		// Send Server Welcome Message.
+		// Send Server Message.
 		rv = send(newfd, message, strlen(message), 0);
 
 		if(rv == -1)
 		{
 			perror("Send");
 		}
-		
-		//write_file(newfd, receive_buffer);
-
 	}
 
 	closesocket(newfd);

@@ -136,10 +136,12 @@ int main(int argc, char *argv[])
 	freeaddrinfo(serverinfo);
 	
 	//rv = send(sockfd, argv[2], strlen(argv[2]), 0);
-	
+	printf("Connection Succesful!\n");
+
 	while(1)
 	{
-		//scanf("%s", message);
+		// Prompt user input.
+		printf("You:");
 		fgets(message, MAXSIZE, stdin);
 
 		// Send client intro.
@@ -161,7 +163,8 @@ int main(int argc, char *argv[])
 
 			exit(1);
 		}
-
+		
+		// Received zero bytes, the connection is now closed.
 		else if(numbytes==0)
 		{
 			break;
@@ -170,19 +173,8 @@ int main(int argc, char *argv[])
 		// Add a '\0' after the last byte to terminate the string.
 		buf[numbytes] ='\0';
 
-		printf("Client: Received\n--------\n%s\n---------\n", buf);
-
-		//fp = fopen(filename, "rb");
-
-	//	if(fp == NULL)
-	//	{
-	//		perror("Error Opening File");
-	//		exit(1);
-	//	}
-
-		//send_file(fp, sockfd);
-		
-		//fclose(fp);
+		// Display the recieved message.
+		printf("Them: ", buf);
 	}
 
 	closesocket(sockfd);
