@@ -165,7 +165,8 @@ int main()
 		printf(receive_buffer);
 		printf("\n"); // newline in terminal.
 
-		scanf("%s", &message);
+		//scanf("%s", &message);
+		fgets(message, MAXSIZE, stdin);
 
 		// Send Server Welcome Message.
 		rv = send(newfd, message, strlen(message), 0);

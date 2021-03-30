@@ -1,3 +1,5 @@
+// 2021-03-30
+//
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -137,7 +139,8 @@ int main(int argc, char *argv[])
 	
 	while(1)
 	{
-		scanf("%s", message);
+		//scanf("%s", message);
+		fgets(message, MAXSIZE, stdin);
 
 		// Send client intro.
 		rv = send(sockfd, message, strlen(message), 0);
