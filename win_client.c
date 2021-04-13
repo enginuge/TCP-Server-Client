@@ -1,3 +1,5 @@
+// 2021-03-30
+//
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -12,6 +14,37 @@
 
 #define MAXSIZE 512
 
+int send_file(FILE *fp, int sockfd)
+{
+	int n;
+	int total_n = 0;
+
+	char data[MAXSIZE] = {0};
+	//int data[MAXSIZE];
+
+	//while(fgets(data, MAXSIZE, fp) != NULL)
+	while(fread(data, sizeof(char), MAXSIZE, fp) > 0 )
+	{
+		n = send(sockfd, data, sizeof(data), 0);
+
+		if(n == -1)
+		{
+			perror("Error Sending File.");
+
+			exit(1);
+		}
+
+		printf("CLIENT: Sent %d Bytes.\n", n);
+		
+		total_n += n;
+
+		memset(data, 0, MAXSIZE);
+	}
+	
+	printf("CLIENT: Total Bytes Sent: %d\n", total_n);
+
+	return 0;
+}
 int main(int argc, char *argv[])
 {
 	WSADATA wsadata;
@@ -24,14 +57,20 @@ int main(int argc, char *argv[])
 
 	int rv; // return-value for function calls.
 
+	// Declare File Pointer.
+	//FILE *fp;
+	//char *filename;
 
+	char message[MAXSIZE];
 
-	if(argc!=3)
+	if(argc!=2)
 	{
 		fprintf(stderr, "Program takes IP input argument\n");
 
 		exit(1);
 	}
+
+	//filename = argv[2];
 
 	// Initialize Winsock library.
 	rv = WSAStartup(MAKEWORD(2,2), &wsadata);
@@ -96,28 +135,47 @@ int main(int argc, char *argv[])
 
 	freeaddrinfo(serverinfo);
 	
-	rv = send(sockfd, argv[2], strlen(argv[2]), 0);
-	
-	if(rv ==-1)
+	//rv = send(sockfd, argv[2], strlen(argv[2]), 0);
+	printf("Connection Succesful!\n");
+
+	while(1)
 	{
-		perror("send");
+		// Prompt user input.
+		printf("You:");
+		fgets(message, MAXSIZE, stdin);
 
-		exit(1);
+		// Send client intro.
+		rv = send(sockfd, message, strlen(message), 0);
+		
+		if(rv ==-1)
+		{
+			perror("send");
+
+			exit(1);
+		}
+		
+		// Receive Server welcome Message.
+		numbytes = recv(sockfd, buf, MAXSIZE-1, 0);
+
+		if(numbytes == -1)
+		{
+			perror("recv");
+
+			exit(1);
+		}
+		
+		// Received zero bytes, the connection is now closed.
+		else if(numbytes==0)
+		{
+			break;
+		}
+
+		// Add a '\0' after the last byte to terminate the string.
+		buf[numbytes] ='\0';
+
+		// Display the recieved message.
+		printf("Them: %s", buf);
 	}
-	
-	numbytes = recv(sockfd, buf, MAXSIZE-1, 0);
-
-	if(numbytes == -1)
-	{
-		perror("recv");
-
-		exit(1);
-	}
-
-	// Add a '\0' after the last byte to terminate the string.
-	buf[numbytes] ='\0';
-
-	printf("Client: Received\n--------\n%s\n---------\n", buf);
 
 	closesocket(sockfd);
 

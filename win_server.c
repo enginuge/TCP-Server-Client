@@ -9,6 +9,43 @@
 
 #define PORT "5555"
 #define MAXSIZE 512
+
+int write_file(int sockfd, char filename[])
+{
+	int n;
+	int total_n = 0;
+
+	FILE *fp;
+	char buffer[MAXSIZE];
+
+	fp = fopen(filename, "wb");
+
+	while(1)
+	{
+		n = recv(sockfd, buffer, MAXSIZE, 0);
+		
+		printf("SERVER: Received %d Bytes.\n", n);
+
+		if(n<= 0)
+		{
+			break;
+		}
+
+		//fprintf(fp, "%s", buffer);
+		fwrite(buffer, sizeof(char), n, fp);
+		
+		total_n += n;
+
+		memset(buffer, 0, MAXSIZE);
+	}
+
+	printf("SERVER: Total Bytes Received: %d\n", total_n);
+	
+	fclose(fp);
+
+	return 0;
+}
+
 int main()
 {
 	WSADATA wsadata;
@@ -94,23 +131,26 @@ int main()
 
 	printf("Server Waiting for Connection...\n");
 
+	sin_size = sizeof their_addr;
+
+	newfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+	
+	printf("After Accept.\n");
+
+	if(newfd == -1)
+	{
+		perror("accept");
+
+		//continue;
+		return -1;
+	}
+
+	printf("Server Got Connection!\n");
+
 	while(1)
 	{
-		sin_size = sizeof their_addr;
 
-		newfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
-		
-		printf("After Accept.\n");
-
-		if(newfd == -1)
-		{
-			perror("accept");
-
-			continue;
-		}
-
-		printf("Server Got Connection\n");
-
+		// Receive Client Intro.
 		rv = recv(newfd, receive_buffer, MAXSIZE-1, 0);
 
 		if(rv == -1)
@@ -122,19 +162,23 @@ int main()
 		
 		receive_buffer[rv] = '\0';
 
-		printf(receive_buffer);
-		printf("\n"); // newline in terminal.
+		// Display the recieved message.
+		printf("Them: %s", receive_buffer);
+		//printf("\n"); // newline in terminal.
 
+		printf("You: ");
+		fgets(message, MAXSIZE, stdin);
+
+		// Send Server Message.
 		rv = send(newfd, message, strlen(message), 0);
 
 		if(rv == -1)
 		{
 			perror("Send");
 		}
-
-		closesocket(newfd);
-
 	}
+
+	closesocket(newfd);
 
 	return 0;
 }
