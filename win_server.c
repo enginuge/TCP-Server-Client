@@ -10,6 +10,8 @@
 #define PORT "5555"
 #define MAXSIZE 512
 
+#define MAX_THREADS 10
+
 int write_file(int sockfd, char filename[])
 {
 	int n;
@@ -46,6 +48,59 @@ int write_file(int sockfd, char filename[])
 	return 0;
 }
 
+DWORD WINAPI rec_worker()
+{
+	char rec_msg[MAXSIZE];	
+
+	int rec_length=0;
+
+	while(1)
+	{
+		rec_length = recv(newfd, rec_msg, MAXSIZE-1, 0);
+
+		if(rec_length == -1)
+		{
+			perror("worker recv");
+
+			exit(1);
+		}
+		
+		rec_msg[rec_length] = '\0';
+
+		// Display the recieved message.
+		printf("Them: %s", rec_msg);
+	}
+
+	return 0;
+}
+
+DWORD WINAPI send_worker()
+{
+	char send_msg[MAXSIZE];
+
+	int send_length = 0;
+
+	while(1)
+	{
+		// Receive Client Intro.
+		printf("You: ");
+		fgets(send_msg, MAXSIZE, stdin);
+
+		// Send Server Message.
+		send_length = send(newfd, send_msg, strlen(send_msg), 0);
+
+		if(send_length == -1)
+		{
+			perror("Send");
+
+			exit(1);
+		}
+	}
+
+	return 0;
+
+}
+
 int main()
 {
 	WSADATA wsadata;
@@ -62,6 +117,12 @@ int main()
 	int rv;
 
 	char receive_buffer[MAXSIZE];
+
+	DWORD dwThreadIdArray[MAX_THREADS];
+
+	HANDLE hThreadArray[MAX_THREADS];
+
+	int threads_open = 0; // Count the open threads.
 
 	rv = WSAStartup(MAKEWORD(2,2), &wsadata);
 
@@ -147,37 +208,13 @@ int main()
 
 	printf("Server Got Connection!\n");
 
-	while(1)
-	{
+	hThreadArray[0] = CreateThread(NULL, 0, rec_worker, NULL, 0, &dwThreadIdArray[0]);
+	threads_open++;
+	hThreadArray[1] = CreateThread(NULL, 0, send_worker, NULL, 0, &dwThreadIdArray[1]);
+	threads_open++;
 
-		// Receive Client Intro.
-		rv = recv(newfd, receive_buffer, MAXSIZE-1, 0);
-
-		if(rv == -1)
-		{
-			perror("recv");
-
-			exit(1);
-		}
-		
-		receive_buffer[rv] = '\0';
-
-		// Display the recieved message.
-		printf("Them: %s", receive_buffer);
-		//printf("\n"); // newline in terminal.
-
-		printf("You: ");
-		fgets(message, MAXSIZE, stdin);
-
-		// Send Server Message.
-		rv = send(newfd, message, strlen(message), 0);
-
-		if(rv == -1)
-		{
-			perror("Send");
-		}
-	}
-
+	WaitForMultipleObjects(threads_open, hThreadArray, TRUE, INFINITE);
+	
 	closesocket(newfd);
 
 	return 0;
