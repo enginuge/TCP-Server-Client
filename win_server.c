@@ -48,52 +48,104 @@ int write_file(int sockfd, char filename[])
 	return 0;
 }
 
-DWORD WINAPI rec_worker()
+//DWORD WINAPI rec_worker()
+//{
+//	char rec_msg[MAXSIZE];	
+//
+//	int rec_length=0;
+//
+//	printf("I am receiving\n");
+//
+//	while(1)
+//	{
+//		rec_length = recv(newfd, rec_msg, MAXSIZE-1, 0);
+//
+//		if(rec_length == -1)
+//		{
+//			perror("worker recv");
+//
+//			exit(1);
+//		}
+//		
+//		rec_msg[rec_length] = '\0';
+//
+//		// Display the recieved message.
+//		printf("Them: %s", rec_msg);
+//	}
+//
+//	return 0;
+//}
+
+//DWORD WINAPI send_worker()
+//{
+//	char send_msg[MAXSIZE];
+//
+//	int send_length = 0;
+//
+//	printf("I am the sending worker\n");
+//
+//	while(1)
+//	{
+//		// Receive Client Intro.
+//		printf("You: ");
+//		fgets(send_msg, MAXSIZE, stdin);
+//
+//		// Send Server Message.
+//		send_length = send(newfd, send_msg, strlen(send_msg), 0);
+//
+//		if(send_length == -1)
+//		{
+//			perror("Send");
+//
+//			exit(1);
+//		}
+//	}
+//
+//	return 0;
+//
+//}
+
+DWORD WINAPI companion_worker(LPVOID lpParameter)
 {
-	char rec_msg[MAXSIZE];	
+	// Thread Worker function, that accept client-user.
+	// Multiple companion worker threads will allow multiple connections.
+	
+	int thread_fd; // The socket file descriptor for this thread.
 
-	int rec_length=0;
+	thread_fd = (int)lpParameter;
 
-	while(1)
-	{
-		rec_length = recv(newfd, rec_msg, MAXSIZE-1, 0);
+	char message[MAXSIZE] = "Robot Club Server is happy to meet you!";
+	int rv;
 
-		if(rec_length == -1)
-		{
-			perror("worker recv");
-
-			exit(1);
-		}
-		
-		rec_msg[rec_length] = '\0';
-
-		// Display the recieved message.
-		printf("Them: %s", rec_msg);
-	}
-
-	return 0;
-}
-
-DWORD WINAPI send_worker()
-{
-	char send_msg[MAXSIZE];
-
-	int send_length = 0;
+	char receive_buffer[MAXSIZE];
 
 	while(1)
 	{
 		// Receive Client Intro.
-		printf("You: ");
-		fgets(send_msg, MAXSIZE, stdin);
+		rv = recv(thread_fd, receive_buffer, MAXSIZE-1, 0);
 
-		// Send Server Message.
-		send_length = send(newfd, send_msg, strlen(send_msg), 0);
-
-		if(send_length == -1)
+		if(rv == -1)
 		{
-			perror("Send");
+			perror("recv");
 
 			exit(1);
+		}
+		
+		receive_buffer[rv] = '\0';
+
+		// Display the recieved message.
+		printf("Them: %s", receive_buffer);
+		//printf("\n"); // newline in terminal.
+
+		printf("You: ");
+		fgets(message, MAXSIZE, stdin);
+
+		// Send Server Message.
+		rv = send(thread_fd, message, strlen(message), 0);
+
+		if(rv == -1)
+		{
+			perror("Send");
 		}
 	}
 
@@ -194,24 +246,43 @@ int main()
 
 	sin_size = sizeof their_addr;
 
-	newfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
-	
-	printf("After Accept.\n");
-
-	if(newfd == -1)
+	// Use accept function.
+	//newfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
+	while(1)
 	{
-		perror("accept");
+		newfd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
 
-		//continue;
-		return -1;
+		printf("After Accept.\n");
+
+		if(newfd == -1)
+		{
+			perror("accept");
+
+			return -1;
+		}
+
+
+		hThreadArray[threads_open] = CreateThread(NULL, 0, companion_worker, &newfd, 0, &dwThreadIdArray[threads_open]);
+
+		threads_open++;
 	}
+
+//	printf("After Accept.\n");
+//
+//	if(newfd == -1)
+//	{
+//		perror("accept");
+//
+//		//continue;
+//		return -1;
+//	}
 
 	printf("Server Got Connection!\n");
 
-	hThreadArray[0] = CreateThread(NULL, 0, rec_worker, NULL, 0, &dwThreadIdArray[0]);
-	threads_open++;
-	hThreadArray[1] = CreateThread(NULL, 0, send_worker, NULL, 0, &dwThreadIdArray[1]);
-	threads_open++;
+//	hThreadArray[0] = CreateThread(NULL, 0, rec_worker, NULL, 0, &dwThreadIdArray[0]);
+//	threads_open++;
+//	hThreadArray[1] = CreateThread(NULL, 0, send_worker, NULL, 0, &dwThreadIdArray[1]);
+//	threads_open++;
 
 	WaitForMultipleObjects(threads_open, hThreadArray, TRUE, INFINITE);
 	
