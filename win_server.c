@@ -110,11 +110,16 @@ DWORD WINAPI companion_worker(LPVOID lpParameter)
 	// Thread Worker function, that accept client-user.
 	// Multiple companion worker threads will allow multiple connections.
 	
+	int *fd_pointer; // Declare pointer to hold address of socket File Descriptor.
+
 	int thread_fd; // The socket file descriptor for this thread.
 
-	thread_fd = (int)lpParameter;
+	fd_pointer = (int*)lpParameter;
+
+	thread_fd = *fd_pointer;
 
 	char message[MAXSIZE] = "Robot Club Server is happy to meet you!";
+
 	int rv;
 
 	char receive_buffer[MAXSIZE];
